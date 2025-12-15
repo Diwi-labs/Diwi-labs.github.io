@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Code Solver</title>
+    <style>
+        :root {
+            --color-primary: #2196F3;
+            --color-primary-hover: #1976D2;
+            --color-primary-active: #1565C0;
+            --color-success: #4CAF50;
+            --color-error: #F44336;
+            --color-bg: #0F1419;
+            --color-surface: #1E1F25;
+            --color-text: #E0E0E0;
+            --color-text-secondary: #B0B0B0;
+            --color-border: #2D2E35;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0F1419 0%, #1a1d26 100%);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #2196F3, #21C4C4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--color-text-secondary);
+            font-size: 1.1em;
+        }
+
+        .questions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .question-block {
+            opacity: 0.4;
+            pointer-events: none;
+            transition: all 0.5s ease;
+        }
+
+        .question-block.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .question-block.completed {
+            opacity: 0.7;
+        }
+
+        .question-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-border);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .question-block.active .question-card {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
+        }
+
+        .question-block.completed .question-card {
+            border-color: var(--color-success);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .question-label {
+            font-size: 0.9em;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #0F1419;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text);
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.2);
+        }
+
+        .form-input:disabled {
+            background: #1a1d26;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn:active {
+            background: var(--color-primary-active);
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: var(--color-text-secondary);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .feedback {
+            margin-top: 12px;
+            font-size: 0.95em;
+            min-height: 20px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .feedback.error {
+            color: var(--color-error);
+        }
+
+        .feedback.success {
+            color: var(--color-success);
+        }
+
+        .number-display {
+            display: inline-block;
+            font-size: 1.2em;
+            margin-left: 8px;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+
+        .final-code {
+            text-align: center;
+            margin-top: 80px;
+            animation: slideUp 0.6s ease;
+        }
+
+        .final-code h2 {
+            color: var(--color-text-secondary);
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .code-display {
+            font-size: 4em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #2196F3, #21C4C4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 10px;
+            animation: codeReveal 0.8s ease;
+        }
+
+        .completion-message {
+            color: var(--color-success);
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes codeReveal {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--color-border);
+            border-radius: 2px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196F3, #21C4C4);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .code-display {
+                font-size: 2.5em;
+                letter-spacing: 5px;
+            }
+
+            .question-text {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Puzzle Code Solver</h1>
+            <p>Answer all questions correctly to reveal the code</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="questions-container">
+            <!-- Q1 -->
+            <div class="question-block active" data-question="0">
+                <div class="question-card">
+                    <div class="question-label">Question 1 of 4</div>
+                    <div class="question-text">You are playing chess, as white, your opponent has his king at H8, pawns at G7 and H7 and a rook at A8, they also have a rook at A2, a Queen at C2. Your king is at A1, you have a knight at H6 and you Queen is at C4. White to move, what is the move which allows them to win?</div>
+                    <div class="input-group">
+                        <input type="text" class="form-input" placeholder="Enter answer (e.g., QG8)" id="input-0">
+                        <button class="btn" onclick="checkAnswer(0)">Submit</button>
+                    </div>
+                    <div class="feedback" id="feedback-0"></div>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="question-block" data-question="1">
+                <div class="question-card">
+                    <div class="question-label">Question 2 of 4</div>
+                    <div class="question-text">I am Irish, I'm a river but I'm not water, I flow but I'm not liquid, what am I?</div>
+                    <div class="input-group">
+                        <input type="text" class="form-input" placeholder="Enter answer" id="input-1" disabled>
+                        <button class="btn" onclick="checkAnswer(1)" disabled>Submit</button>
+                    </div>
+                    <div class="feedback" id="feedback-1"></div>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="question-block" data-question="2">
+                <div class="question-card">
+                    <div class="question-label">Question 3 of 4</div>
+                    <div class="question-text">What is 9 + 10?</div>
+                    <div class="input-group">
+                        <input type="text" class="form-input" placeholder="Enter answer" id="input-2" disabled>
+                        <button class="btn" onclick="checkAnswer(2)" disabled>Submit</button>
+                    </div>
+                    <div class="feedback" id="feedback-2"></div>
+                </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="question-block" data-question="3">
+                <div class="question-card">
+                    <div class="question-label">Question 4 of 4</div>
+                    <div class="question-text">What is the integral from -∞ to +∞ of (e × cos(x)) / (π × (1+x²)²)?</div>
+                    <div class="input-group">
+                        <input type="text" class="form-input" placeholder="Enter answer" id="input-3" disabled>
+                        <button class="btn" onclick="checkAnswer(3)" disabled>Submit</button>
+                    </div>
+                    <div class="feedback" id="feedback-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="final-code hidden" id="finalCode">
+            <h2>🎉 All Questions Solved!</h2>
+            <div class="code-display" id="codeDisplay"></div>
+            <div class="completion-message">Congratulations! You've unlocked the code.</div>
+        </div>
+    </div>
+
+    <script>
+        // Question data: question index, correct answer, and associated number
+        const questions = [
+            { answer: 'QG8', number: '5' },
+            { answer: 'Riverdance', number: '1' },
+            { answer: '21', number: '3' },
+            { answer: '1', number: '4' }
+        ];
+
+        const answeredNumbers = [];
+        let allCorrect = false;
+
+        function checkAnswer(questionIndex) {
+            const userInput = document.getElementById(`input-${questionIndex}`).value.trim();
+            const feedback = document.getElementById(`feedback-${questionIndex}`);
+            const questionBlock = document.querySelector(`[data-question="${questionIndex}"]`);
+            
+            // Case-insensitive comparison
+            const isCorrect = userInput.toLowerCase() === questions[questionIndex].answer.toLowerCase();
+            
+            if (isCorrect) {
+                // Mark as correct
+                feedback.textContent = `✓ Correct! Number: ${questions[questionIndex].number}`;
+                feedback.classList.remove('error');
+                feedback.classList.add('success');
+                
+                // Disable input and button
+                document.getElementById(`input-${questionIndex}`).disabled = true;
+                event.target.disabled = true;
+                
+                // Mark question as completed
+                questionBlock.classList.remove('active');
+                questionBlock.classList.add('completed');
+                
+                // Store the number
+                answeredNumbers[questionIndex] = questions[questionIndex].number;
+                
+                // Enable next question
+                if (questionIndex < questions.length - 1) {
+                    const nextBlock = document.querySelector(`[data-question="${questionIndex + 1}"]`);
+                    nextBlock.classList.add('active');
+                    document.getElementById(`input-${questionIndex + 1}`).disabled = false;
+                    document.querySelector(`[data-question="${questionIndex + 1}"] .btn`).disabled = false;
+                    
+                    // Scroll to next question
+                    setTimeout(() => {
+                        nextBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                } else {
+                    // All questions answered
+                    showFinalCode();
+                }
+                
+                // Update progress bar
+                updateProgress();
+            } else {
+                // Incorrect answer
+                feedback.textContent = '✗ Incorrect. Please try again.';
+                feedback.classList.remove('success');
+                feedback.classList.add('error');
+            }
+        }
+
+        function showFinalCode() {
+            allCorrect = true;
+            const code = answeredNumbers.join('');
+            document.getElementById('codeDisplay').textContent = code;
+            document.getElementById('finalCode').classList.remove('hidden');
+            
+            // Scroll to code
+            setTimeout(() => {
+                document.getElementById('finalCode').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        }
+
+        function updateProgress() {
+            const completedCount = answeredNumbers.filter(n => n !== undefined).length;
+            const progress = (completedCount / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const activeInput = document.activeElement;
+                if (activeInput.classList.contains('form-input') && !activeInput.disabled) {
+                    const questionIndex = parseInt(activeInput.id.split('-')[1]);
+                    checkAnswer(questionIndex);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
